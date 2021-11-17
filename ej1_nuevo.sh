@@ -43,42 +43,38 @@ function gethoursminutes
     hourscount=0
     minutescount=0
     if [ "$1" == "" ]
-        then
+    then
         hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f1)
         minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
     else
-        hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$paramname " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f1)
-        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$paramname " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
+        hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f1)
+        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
     fi
     for I in $hours
     do
-        hourscount=$(($hourscount+$I))
+        I=$(echo $I | sed "s/^0*//g")
+        hourscount=$(($I+$hourscount))
     done
     for I in $minutes
     do
-        regex="^[0][1-9]"
-        regex2="^[0][0]"
-        regex3="^[1-9][1-9]"
-        if [[ "$I" =~ $regex ]]
-        then
-            I=$(echo "$I" | sed "s/^0*//g")
-            minutescount=$(($minutescount+$I))	
-        elif [[ "$I" =~ $regex2 ]]
-        then
-            I=$I
-        elif [[ "$I" =~ $regex3 ]]
-        then
-            minutescount=$(($minutescount+$I))
-        fi
+        I=$(echo $I | sed "s/^0*//g")
+        minutescount=$(($I+$minutescount))
     done
     if [ "$hourscount" -eq 0 ] && [ "$minutescount" -eq 0 ]
+    then
+        echo "No se han encontrado conexiones para listar en el sistema para el usuario $1.">&2
+        exit 0
+    else
+        if [ "$1" == "" ]
         then
-                echo "No se han encontrado conexiones para listar en el sistema para el usuario $paramname.">&2
-                exit 0
+            echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)"
+            echo ""
+            converttime $minutescount $hourscount
         else
-        echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)" | grep "^$paramname "
-        echo ""
-        converttime $minutescount $hourscount
+            echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)" | grep "^$1 "
+            echo ""
+            converttime $minutescount $hourscount
+        fi
     fi
 }
 
@@ -87,55 +83,33 @@ then
     echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)"
     exit 0
 fi
-if [ $# -eq 1 ] && [ "$1" == "-r" ]
-then
-    echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)"
-    echo ""
-    gethoursminutes
-    exit 0
-elif [ $# -gt 1 ] && [ "$1" == "-r" ]
-then
-    paramr="true"
-    shift
-else
-    echo "Modificador $1 incorrecto. Solo se aceptan -r y -u usuario, y en ese orden en caso de estar ambos presentes.">&2
-    exit 4
-fi
 
-if [ "$1" == "-u" ]
-then
-    paramu="true"
-    shift
-else
-    echo "Modificador $1 incorrecto. Solo se aceptan -r y -u usuario, y en ese orden en caso de estar ambos presentes.">&2
-    exit 4
-fi
-
-regex="^[^-]"
-if [[ "$1" =~ $regex ]] && [ "$1" != "" ]
-then
-    paramname="$1"
-    if ! validaruser $paramname
-    then
-            echo "No existe el usuario $user en el sistema.">&2
-            exit 2
-    fi
-    shift
-else
-    echo "No se ha especificado el usuario para el modificador -u">&2
-    exit 1
-fi
-
-if [ $# -ge 1 ]
-then
-    echo "Cantidad de parámetros errónea, solo se aceptan los modificadores -r y -u (seguido de un nombre de usuario).">&2
-    exit 3
-fi
-
-if [ "$paramu" == "true" ] && [ "$paramr" == "true" ]
-then
-    echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)" | grep "^$paramname "
-    echo ""
-    gethoursminutes $paramname
-fi
-exit 0
+while getopts "ru:" opt
+   do
+     case $opt in
+        r )
+            if [ $# -eq 1 ]
+            then
+                gethoursminutes
+                exit 0
+            fi
+        ;;
+        u )
+            if [ $# -eq 3 ]
+            then
+                if ! validaruser $OPTARG
+                then
+                    echo "No existe el usuario $OPTARG en el sistema.">&2
+                    exit 2
+                else
+                    gethoursminutes $OPTARG
+                    exit 0
+                fi
+                exit 0
+            else
+                echo "Modificador $1 incorrecto. Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.">&2
+                exit 4
+            fi
+        ;;
+     esac
+done
