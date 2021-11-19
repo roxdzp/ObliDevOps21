@@ -31,7 +31,7 @@ function converttime
 	fi
 	if [ $days -ge 1 ]
 	then
-		echo "El tiempo total de conexión es: $days días, $hour horas y $min minutos"
+		echo "El tiempo total de conexion es: $days dias, $hour horas y $min minutos"
 	else
 		echo "El tiempo total de conexion es: $hour horas y $min minutos"
 	fi

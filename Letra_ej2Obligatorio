@@ -1,0 +1,122 @@
+"""
+El objetivo del ejercicio 2 es hacer un script de Python que despliegue información 
+producida en base a la salida del script creado en el ejercicio 1, agregándole 
+funcionalidades y siendo más flexible en la interpretación de los modificadores
+(no requiriendo un orden específico para poder reconocerlos). El ejercicio 2 
+consiste en realizar un script en Python que sea de la forma:
+ej2_historial_usuarios_conectados_exp.py [-r] [-u Usuario] [-o {u,t,h,d}] 
+[-i] [-f {u,t,h,f,c,n,d}] El script de Python recibirá las indicaciones según lo 
+ingresado por el usuario en la línea de comandos (modificadores, opciones y usuario)
+y desplegará información de conexiones del sistema en general o para el usuario 
+indicado como parámetro. El script Python deberá aceptar los modificadores y 
+sus parámetros en cualquier orden, pudiendo estar o no presentes.
+Dos de los modificadores del script de Python (-r y -u) son iguales a los del ejercicio 1. Así, esas
+opciones serán tratadas de igual forma a ese script (se respetará, en la funcionalidad extendida del
+script en Python, que -r sea para desplegar el tiempo total de conexión de las conexiones listadas, así
+como que el modificador -u permita ingresar el usuario al cual se le desplegarán las conexiones).
+A las opciones que tiene el script en bash del ejercicio 1, el script de Python le agregará más
+funcionalidades dadas por los siguientes modificadores:
+Si el script en Python recibe el modificador -h, desplegará una ayuda (por la salida estándar)
+explicando para qué sirven los diferentes modificadores y la sintaxis general del comando.
+Si el script en Python recibe el modificador -o, ordenará la salida por uno de cuatro posibles criterios
+en forma creciente. Si se recibe u como parámetro de la opción -o (el usuario ingresa en la línea de
+comandos -o u), entonces se ordenará el listado de conexiones por el nombre del usuario en forma
+alfabética creciente. Si se recibe t como parámetro de la opción -o (el usuario ingresa en la línea de
+comandos -o t), entonces se ordenará el listado de conexiones por la terminal en orden alfabético
+creciente. Si se recibe h como parámetro de la opción -o (el usuario ingresa en la línea de comandos
+-o h), entonces se ordenará el listado de conexiones por el host en orden alfabético creciente. Si se
+recibe d como parámetro de la opción -o (el usuario ingresa en la línea de comandos -o d), entonces
+se ordenará el listado de conexiones por la duración de la conexión en forma creciente (quedando de
+esta forma las conexiones que han durado menos primero y las que han durado más al final). Si se
+recibiera más de una opción de ordenamiento, se considerará una cualquiera de ellas (por ejemplo, la
+que se ingresó último en la línea de comandos al ejecutarse el script Python) y se ignorará la o las 
+demás. Si no se recibe el modificador -o, el orden de las conexiones será el mismo que retorne el
+script del ejercicio 1 (que a su vez respeta el orden que usa last por defecto).
+Si el script en Python recibe el modificador -i, invertirá el orden del listado de salida, sea cual sea
+este. Es decir, este presente el modificador mencionado anteriormente (modificador -o y sus opciones
+u, t, h y d) o no, el modificador -i invertirá ese orden, por lo que se puede combinar con -o para
+producir, por ejemplo, un listado ordenado en forma decreciente por tiempo de duración de las
+conexiones (producido con los parámetros -o d -i), en vez de creciente.
+Si el script en Python recibe el modificador -f, filtrará la salida quitando cualquiera de los 7 campos de
+las conexiones. Si se recibe u como parámetro de la opción -f (el usuario ingresa en la línea de
+comandos -f u), entonces se filtrará (se quitara del listado) el campo que contiene al nombre de
+usuario. Si se recibe t como parámetro de la opción -f (el usuario ingresa en la línea de comandos -f
+t), entonces se filtrará el campo que contiene a la terminal. Si se recibe h como parámetro de la
+opción -f (el usuario ingresa en la línea de comandos -f h), entonces se filtrará el campo que contiene
+el host. Si se recibe f como parámetro de la opción -f (el usuario ingresa en la línea de comandos
+-f f), entonces se filtrará el campo fecha. Si se recibe c como parámetro de la opción -f (el usuario
+ingresa en la línea de comandos -f c), entonces se filtrará el campo que contiene la hora de conexión.
+Si se recibe n como parámetro de la opción -f (el usuario ingresa en la línea de comandos -f n),
+entonces se filtrará el campo que contiene la hora de desconexión. Si se recibe d como parámetro de
+la opción -f (el usuario ingresa en la línea de comandos -f d), entonces se filtrará el campo que
+contiene la duración de la conexión. El script debe soportar el ingreso de más de una opción y
+proceder en consecuencia. Por ejemplo, si el usuario ingresa -f h -f f entonces se quitaran del listado
+los campos que contienen el host y la fecha. Si el usuario ingresa todas las opciones para filtrar todos
+los campos (y por tanto no se mostraría ningún listado por la salida estándar, ya que ningún campo
+seria visible), el script en Python deberá desplegar el mensaje “Al menos un campo debe estar
+visible, no pudiéndose ocultar todos” por la salida estándar de errores y se deberá devolver un 20
+como resultado (como código de retorno del script). Observación: El script deberá ser capaz de
+ordenar la información por un campo que sea filtrado (procediendo a ordenar antes la información y
+recién después filtrar los campos no deseados). Por ejemplo, si el usuario ingresa los modificadores
+-o d -f d, deberá ordenar la información por duración en forma creciente aunque el campo duración
+de la conexión no sea mostrado (porque se ha filtrado por el modificador -f con parámetro d).
+El script de Python deberá utilizar apropiadamente el script del ejercicio 1, no resolviendo por
+sí mismo (en ningún caso) directamente la obtención de la información de las conexiones de o
+los usuarios. El script en Python deberá llamar al script del ejercicio 1 con los parámetros adecuados
+para producir la salida a mostrar como resultado (haciendo el procesamiento necesario de la
+información brindada por el script del ejercicio 1 para adaptarla a los pedidos del usuario). Observe el
+paralelismo que hay entre dos de los modificadores (-r y -u Usuario) del script en Python con los
+modificadores del script del ejercicio 1.
+El script en Python reutilizará la verificación de errores del script del ejercicio 1 (si se producen
+errores al ejecutarse ese script) y reutilizará también los mensajes que este envíe a su salida
+estándar de errores (los mensajes de error, que correspondan al ejercicio 1, deben ser generados por
+ese script, haciendo el script en Python un aprovechamiento de los mismos, reenvidándolos a su
+propia salida estándar de errores). El código de retorno del script en Python será también el que
+retorne el script del ejercicio 1 en estos casos.
+En caso que existan errores en la interpretación de los argumentos recibidos (cantidad incorrecta de
+argumentos, modificadores inválidos, parámetros incorrectos), se retornara un 25 como código de 
+retorno y se desplegará, por la salida estándar de errores, una descripción resumida de la sintaxis
+general del comando (del script en Python).
+Si no se producen errores (con un usuario existente en el sistema en caso de usarse el modificador -u
+y no hay modificadores incorrectos ni otros errores en el ingreso de los argumentos), se desplegará la
+información que retorna el script del ejercicio 1 por su salida estándar, procesada y con las
+características apropiadas según los modificadores y parámetros indicados por el usuario. En este
+caso, el código de retorno deberá ser 0.
+Si al menos se ha listado una conexión, al final del listado y del reporte de tiempo total de conexión si
+se ha especificado el modificador -r (y con una línea de separación), el script en Python deberá
+desplegar por la salida estándar el texto “Cantidad de conexiones listadas”: < número de
+conexiones listadas >” si no se ha recibido el modificador -u, y si se ha recibido el modificador -u,
+deberá desplegar “Cantidad de conexiones listadas para el usuario < usuario ingresado >”: <
+número de conexiones listadas >.
+Si no hay errores y además no hay conexiones para listar, también se aprovechará el mensaje que
+envía el script del ejercicio 1 en ese caso (por su salida estándar de errores), que será reenviado por
+la salida estándar de errores del script en Python. Como no es un error que no se encuentren
+conexiones en las condiciones indicadas (desde el punto de vista de la sintaxis de este script), el
+código de retorno del script de Python también será cero en este caso (como se da también con el
+script del ejercicio 1 en este mismo caso).
+Si el script de Python necesita crear algún archivo auxiliar (es más recomendable no usar archivos
+auxiliares, pero está permitido utilizarlos), deberá hacerlo en el directorio /tmp y asegurarse de que el
+archivo creado tenga un nombre único (alcanzando con agregarle al nombre del archivo el número de
+PID del script en Python, aunque se aceptarán soluciones más sofisticadas que eso). En caso de no
+poderse crear el archivo auxiliar en las condiciones necesarias, deberá desplegarse un mensaje de
+error adecuado por la salida estándar de errores y devolverse un 30 como resultado (como código de
+retorno del script). Antes de finalizar el script, el archivo o los archivos auxiliares creados deberán ser
+eliminados. Estas indicaciones son innecesarias si no se crean archivos auxiliares.
+Por ejemplo, si se ejecuta:
+ej2_historial_usuarios_conectados_exp.py -r -u alumno -o d -f t -f h -i
+entonces la salida del script en Python deberá ser algo como (suponiendo las mismas condiciones
+mencionadas en el ejemplo del ejercicio 1):
+Usuario Fecha H.Con H.Des T.Con
+alumno Sat Sep 4 12:53 - 14:25 (01:31)
+alumno Sat Sep 4 12:55 - 14:18 (01:23)
+alumno Sat Sep 4 13:46 - 14:24 (00:37)
+alumno Sat Sep 4 14:24 - 14:25 (00:01)
+alumno Wed Sep 1 17:03 - 17:03 (00:00)
+El tiempo total de conexión es: 3 horas y 31 minutos.
+Cantidad de conexiones listadas para el usuario alumno: 5.
+Se puede observar de la anterior salida que se han eliminado del listado los campos de la terminal y
+el host debido a los modificadores y opciones -f t -f h. Puede observarse también que el listado ha
+sido ordenado en forma decreciente (por el modificador -i) de duración de la conexión (por el
+modificador -o con parámetro d). También se despliega el tiempo total de conexión por el modificador
+-r. Al final se despliega la cantidad de conexiones encontradas, que en este caso son 5.
+"""
