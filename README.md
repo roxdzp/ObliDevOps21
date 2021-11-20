@@ -20,4 +20,3 @@ git pull
 git add .
 git commit -m "Comentario sobre el cambio"
 git push
-

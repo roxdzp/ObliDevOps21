@@ -3,13 +3,17 @@
 ## Funcion que valida que un usuario exista
 function validaruser
 {
+    ## Utilizamos -q para que grep no escriba en pantalla y utilizamos la regex=^$1: que nos busca el parametro recibido de la funcion en el archivo
+    ## solo si empieza con ese parametro $1 y esta acompañado de un : al final.
 	if ! grep -q "^$1:" /etc/passwd
 	then
 		return 1
 	fi
 }
 
-## Esta funcion nos permite pasando dos parametros (hh y mm) convertir esas cantidades a dias, horas y minutos o a horas y minutos si dias = 0 (minutos < 1440)
+## Esta funcion nos permite pasando dos parametros (hh y mm) convertir esas cantidades a dias, horas y minutos o a horas y minutos si dias = 0 
+## (minutos < 1440)
+## Se debe de entender que 1440 minutos son 1 día y que 60 minutos son 1 hora.
 function converttime
 {
 	((minutes=$2*60))
@@ -37,19 +41,31 @@ function converttime
 	fi
 }
 
-## Se crea una función que dependiendo de si se le pasa o no un usuario en particular, obtiene todas las horas-minutos para luego pasarlas a la funcion converttime()
+## Se crea una función que dependiendo de si se le pasa o no un usuario en particular, obtiene todas las horas-minutos para luego pasarlas
+## a la funcion converttime()
+## Cuando se llama a la función convertime con un parametro $1, es porque la utilizamos para pasarle el username a filtrar con grep
+## De esta forma con la misma función pasamos las horas/minutos o de todos los usuarios o de uno solo en particular.
+## Un ejemplo sería usar converttime $username
 function gethoursminutes
 {
     hourscount=0
     minutescount=0
     if [ "$1" == "" ]
     then
-        hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f1)
-        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
+    ## Para guardar las horas y minutos, filtramos el last por todo lo que tenga ([0-9]*:[0-9]) de forma que eliminamos cualquier linea del last
+    ## que diga "still logged in" o que tenga más de 1 día de conexion.
+    ## luego filtramos para quedarnos con lo de dentro de los () y para las horas nos quedamos con lo de la izquierda del : y para los minutos con
+    ## lo de la derecha del :
+    ## En caso de recibir el parametro $1 lo que hacemos es filtrar el last por el usuario recibido en ese parametro
+    ## utilizando el grep grep "^$1 " (¿Por que un espacio después del $1, porque usamos tr -s " " delimitando cada columna por un espacio).
+        hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d":" -f1)
+        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | sed "s/)//g" | cut -d":" -f2)
     else
-        hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f1)
-        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
+        hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d":" -f1)
+        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | sed "s/)//g" | cut -d":" -f2)
     fi
+    ## En el for que suma todas las horas/minutos recibidos, utilizamos el sed para eliminar todos los ceros a la izquierda del valor
+    ## porque bash no interpeta el 01 como un numero, solo el 1.
     for I in $hours
     do
         I=$(echo $I | sed "s/^0*//g")
@@ -60,27 +76,30 @@ function gethoursminutes
         I=$(echo $I | sed "s/^0*//g")
         minutescount=$(($I+$minutescount))
     done
+    ## En caso de no obtener ninguna hora ni minuto a mostrar, es porque el usuario no tiene conexiones en el sistema, por ende devolvemos error.
     if [ "$hourscount" -eq 0 ] && [ "$minutescount" -eq 0 ]
     then
         echo "No se han encontrado conexiones para listar en el sistema para el usuario $1.">&2
         exit 0
     else
+        echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con"
+        ## En este if validamos si debemos filtrar el last por el $1 (username) o no, antes de mostrar los valores y la suma de las horas/minutos
         if [ "$1" == "" ]
         then
-            echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)"
-            echo ""
-            converttime $minutescount $hourscount
+            last | grep "([0-9]*:[0-9]*)"
         else
-            echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)" | grep "^$1 "
-            echo ""
-            converttime $minutescount $hourscount
+            last | grep "([0-9]*:[0-9]*)" | grep "^$1 "
         fi
+        echo ""
+        converttime $minutescount $hourscount
     fi
 }
-## Si la persona no ingresa ningún parametro, le devolvemos el LAST pero con el cabezal (header|titulo) que usamos
+## Si la persona no ingresa ningún parametro, le devolvemos el LAST pero con el cabezal (header|titulo) que usamos filtrando lo del
+## "still logged in" o que tenga más de 1 día de conexion.
 if [ $# -eq 0 ]
 then
-    echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)"
+    echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con"
+    last | grep "([0-9]*:[0-9]*)"
     exit 0
 fi
 ## Con getops validamos lo introducido por el usuario, solicitando -r (puede ir solo), -u (acompañado de un valor, para eso el :)
