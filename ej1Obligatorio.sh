@@ -77,39 +77,52 @@ function gethoursminutes
         fi
     fi
 }
-
+## Si la persona no ingresa ningún parametro, le devolvemos el LAST pero con el cabezal (header|titulo) que usamos
 if [ $# -eq 0 ]
 then
     echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con" | column -t -s"\t" && last | grep "([0-9]*:[0-9]*)"
     exit 0
 fi
-
-while getopts "ru:" opt
-   do
-     case $opt in
-        r )
-            if [ $# -eq 1 ]
-            then
-                gethoursminutes
-                exit 0
-            fi
+## Con getops validamos lo introducido por el usuario, solicitando -r (puede ir solo), -u (acompañado de un valor, para eso el :)
+## Luego lo que hacemos es guardar los valores que coincidan con lo ingresado en la variable opt
+## Al saber que introdujo la persona, utilizamos case para poder gestionar las funciones del programa en base a esa misma variable opt
+## Cada vez que la variable opt entra a un case, automaticamente se le hace un shift para pasar al siguiente valor de parametro introducido
+while getopts ":ru:" opt;do
+    case $opt in
+    ## Si la persona ingresa -r y SOLO -r ($# cantidad de paramentros = 1), entonces mostramos el last, con cabezales y con la suma de horas propia
+    ## del -r
+    r )
+        if [ $# -eq 1 ]
+        then
+            gethoursminutes
+            exit 0
+        fi
         ;;
-        u )
-            if [ $# -eq 3 ]
-            then
-                if ! validaruser $OPTARG
-                then
-                    echo "No existe el usuario $OPTARG en el sistema.">&2
-                    exit 2
-                else
-                    gethoursminutes $OPTARG
-                    exit 0
-                fi
-                exit 0
-            else
-                echo "Modificador $1 incorrecto. Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.">&2
-                exit 4
-            fi
+    ## Se ingresa al -u unicamente si la persona ingresa -u seguido del atributo a cargar para ese parametro (:). 
+    ## Sigue de la mando de que debe ingresarse el -r antes, dado que en el case esta el r) antes que el u)
+    ## Cuando la persona ingresa un atributo para un modificador (en este caso -u) se guarda en la variable $OPTARG, así que la usaremos como nuestro
+    ## username o usuario a buscar.
+    u )
+        if ! validaruser $OPTARG
+        then
+            echo "No existe el usuario $OPTARG en el sistema.">&2
+            exit 2
+        else
+            gethoursminutes $OPTARG
+            exit 0
+        fi
+        exit 0 
         ;;
-     esac
+    ## Este caso esta hecho porque si el modificador -u que tiene el (:) no recibe su atributo correspondiente, cae acá y controlamos esa excepción
+    \: )
+        echo "No se ha especificado el usuario para el modificador -u.">&2
+        exit 5
+        ;;
+    ## Getops guarda en la variable ? el valor del parametro (modificador -) que se introduzca que no pertenezca a las opciones, por ende 
+    ## si se ingresa un parametro no valido, acá capturamos la excepción
+    \? )
+        echo "Modificador $1 incorrecto. Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.">&2
+        exit 4
+        ;;
+    esac
 done
