@@ -134,13 +134,13 @@ while getopts ":ru:" opt;do
         ;;
     ## Este caso esta hecho porque si el modificador -u que tiene el (:) no recibe su atributo correspondiente, cae acá y controlamos esa excepción
     \: )
-        echo "No se ha especificado el usuario para el modificador -u.">&2
+        echo "No se ha especificado el usuario para el modificador .$OPTARG">&2
         exit 5
         ;;
     ## Getops guarda en la variable ? el valor del parametro (modificador -) que se introduzca que no pertenezca a las opciones, por ende 
     ## si se ingresa un parametro no valido, acá capturamos la excepción
     \? )
-        echo "Modificador $1 incorrecto. Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.">&2
+        echo "Modificador -$OPTARG incorrecto. Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.">&2
         exit 4
         ;;
     esac
