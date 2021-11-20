@@ -12,7 +12,8 @@ Obligatorio de Programación para DevOps
     Ejercicio de
 
 
-Token de Maik: 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
+Token de Maik:
+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
 
 git init
 git pull
