@@ -10,3 +10,13 @@ Obligatorio de Programación para DevOps
 ## Ejercicio 2 - Python
  - ej2_largo_caminos_expandido.py
     Ejercicio de
+
+
+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
+
+git init
+git pull
+git add .
+git commit -m "Comentario sobre el cambio"
+git push
+

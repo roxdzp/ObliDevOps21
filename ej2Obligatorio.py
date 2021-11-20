@@ -18,5 +18,3 @@ output = process.communicate()
 
 print(output[0].decode(), file = sys.stderr, end="")
 
-
-
