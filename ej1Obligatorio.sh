@@ -82,7 +82,7 @@ function gethoursminutes
         echo "No se han encontrado conexiones para listar en el sistema para el usuario $1.">&2
         exit 0
     else
-        echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con"
+        echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
         ## En este if validamos si debemos filtrar el last por el $1 (username) o no, antes de mostrar los valores y la suma de las horas/minutos
         if [ "$1" == "" ]
         then
@@ -98,7 +98,7 @@ function gethoursminutes
 ## "still logged in" o que tenga más de 1 día de conexion.
 if [ $# -eq 0 ]
 then
-    echo -e "Usuario\t Term\t      HOST\t       Fecha\t  H.Con\t  H.Des\t T.Con"
+    echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
     last | grep "([0-9]*:[0-9]*)"
     exit 0
 fi
