@@ -19,7 +19,7 @@ parser.add_argument("-u", "--usuario", type=str, default="", help="Nos permite b
 
 parser.add_argument("-o", "--orden", type=str, choices=["u", "t", "h", "d"], help="Ordenar de forma creciente la salida del LAST por una de las cuatro columnas a seleccionar.")
 
-parser.add_argument("-f", "--filtro", type=str, choices=["u", "t", "h", "f", "c", "n", "d"], help="Filtrado de listado (quita opciones).")
+parser.add_argument("-f", "--filtro", type=str, choices=["u", "t", "h", "f", "c", "n", "d"], help="Filtrado de listado (quita opciones).", nargs='+')
 
 parser.add_argument("-i", "--inverso", help="Devuelve el listado de los valores ordenados con el -o pero de forma inversa.", action="store_true")
 
@@ -28,35 +28,6 @@ try:
 except SystemExit as e:
     print("Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.")
     exit(25)
-
-
-print("**********************************************")
-print("*                                                                  *")
-print("*                Manual del Usuario                  *")
-print("*                                                                  *")
-print("**********************************************")
-print(" ")
-print("Modificador -o: ordenará la salida por uno de cuatro posibles criterios en forma creciente.")
-print(" - Opción u: Ordenará el listado de conexiones por el nombre del usuario en forma alfabética creciente.")
-print(" - Opción t: Ordenará el listado de conexiones por la terminal en orden alfabético creciente.")
-print(" - Opción h: Ordenará el listado de conexiones por el host en orden alfabético creciente.")
-print(" - Opción b: Ordenará el listado de conexiones por la duración de la conexión en forma creciente.") 
-print("Nota: Con más de una opción de ordenamiento, se considerará la que se ingresó último y se ignorará la o las demás.")
-print(" ")
-print("Modificador -i: Invierte el orden del listado, se puede combinar con el Modificador -o.")
-print(" ")
-print("Modificador -f:  Filtrado de listado (quita opciones).")
-print(" - Opción u: Quita el campo que contiene al nombre de usuario del listado.")
-print(" - Opción t: Quita el campo que contiene a la terminal del listado.")
-print(" - Opción h: Quita el campo que contiene el host del listado.")
-print(" - Opción f: Quita el campo fecha del listado.")
-print(" - Opción c: Quita el campo que contiene la hora de conexión.")
-print(" - Opción n: Quita el campo que contiene la hora de desconexión.")
-print(" - Opción d: Quita el campo que contiene la duración de la conexión.")
-print("**********************************************")
-print("\n")
-
-
 
 if args.recuento_horas:
     ej1_last.append("-r")
@@ -79,13 +50,6 @@ if output[1].decode() != "":
 
 ## Creamos una función que en base a los cabezales de siempre, y a una lista, nos imprime esa lista con los cabezales.
 ## La variable valores_sumados la recibe al ser llamada y tiene en ella el valor de los valores sumados al haberse ingresado -r
-def print_list(cabezales, lista, valores_sumados):
-    ## Imprimimos los cabezales (headers)
-    print(cabezales)
-    for i in range(0,len(lista)):
-        print(lista[i])
-    print("\n")
-    print(valores_sumados)
 
 #Los valores en la lista_normalizada son en base a la columna:
 #1=-u=usuario
@@ -100,142 +64,210 @@ def print_list(cabezales, lista, valores_sumados):
 def normalizar_lista():
     ## Guardamos en una lista todas las lineas de la salida estandar del script de bash
     lista=output[0].decode().split("\n")
+    headers='Usuario Term Host Fecha - - H.Con - H.Des T.Con'
     ## Guardamos los cabezales en una variable
-    cabezales=lista[0]
-    suma_valores=lista[-2]
+    if args.recuento_horas :
+        suma_valores=lista[-2]
+        lista_normalizada=[]
+        lista_normalizada.append(headers)
+        for i in range(1,len(lista)-2):
+            if lista[i].split(" ")[0] != "reboot" :
+                lista_normalizada.append(re.sub(' +', ' ', lista[i]))
+        return lista_normalizada, suma_valores
+    else:
+        suma_valores=""
+        lista_normalizada=[]
+        lista_normalizada.append(headers)
+        for i in range(1,len(lista)):
+            if lista[i].split(" ")[0] != "reboot" :
+                lista_normalizada.append(re.sub(' +', ' ', lista[i]))
+        return lista_normalizada, suma_valores
     ## Previo a poder trabajar con los resultados de la lista que tenemos, la normalizamos quitando los espacios repetidos y convirtiendolos
     ## en solo un espacio y eliminando todas las lineas que inicien con reboot, para trabajar unicamente con usuarios.
-    lista_normalizada=[]
-    for i in range(1,len(lista)-3):
-        if lista[i].split(" ")[0] != "reboot" :
-            lista_normalizada.append(re.sub(' +', ' ', lista[i]))
-    return lista_normalizada, cabezales, suma_valores
 
 ## Creamos una función que nos permita filtrar por una columna en particular del LAST recibido.
-def filtrar_last(opcion,invertido):
-    lista_normalizada, cabezales, suma_valores = normalizar_lista()
+def filtrar_last(opcion, lista_filtrada):
+    lista_filtrada.pop(-1)
+    indice=0
     if opcion == "u" :
-        print("---------------------------")
-        print("Filtrar por usuario:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[1:])
-        print("Term    HOST            Fecha   H.Con   H.Des   T.Con")
-        for i in lista_filtrada:
-            if i[1] == "tty2":
-                print(i[0]+"\t"+i[1]+"\t\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5])
-            else:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5])
-        print(suma_valores)
-    elif opcion == "t" :
-        print("---------------------------")
-        print("Filtrar por terminal:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[0:1]+lista_normalizada[i].split(" ")[2:])
-        print("Usuario HOST            Fecha   H.Con   H.Des   T.Con")
-        for i in lista_filtrada:
-            if i[1] == "tty2":
-                print(i[0]+"\t"+i[1]+"\t\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5])
-            else:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5])
-        print(suma_valores)
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'Usuario':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
+    if opcion == "t" :
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'Term':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
     elif opcion == "h" :
-        print("---------------------------")
-        print("Filtrar por host:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[0:2]+lista_normalizada[i].split(" ")[3:])
-        print("Usuario Term    Fecha   H.Con   H.Des   T.Con")
-        for i in lista_filtrada:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5])
-        print(suma_valores)
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'Host':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
     elif opcion == "f" :
-        print("---------------------------")
-        print("Filtrar por fecha:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[0:3]+lista_normalizada[i].split(" ")[6:])
-        print("Usuario Term    HOST            H.Con   -       H.Des   T.Con")
-        for i in lista_filtrada:
-            if i[2] == "tty2":
-                print(i[0]+"\t"+i[1]+"\t\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6])
-            else:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6])
-        print(suma_valores)
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'Fecha':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
     elif opcion == "c" :
-        print("---------------------------")
-        print("Filtrar por hora de conexion:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[0:6]+lista_normalizada[i].split(" ")[8:])
-        print("Usuario Term    HOST            Fecha                   H.Des   T.Con")
-        for i in lista_filtrada:
-            if i[2] == "tty2":
-                print(i[0]+"\t"+i[1]+"\t\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6]+"\t"+i[7])
-            else:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6]+"\t"+i[7])
-        print(suma_valores)
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'H.Con':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
     elif opcion == "n" :
-        print("---------------------------")
-        print("Filtrar por hora de desconexion:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[0:7]+lista_normalizada[i].split(" ")[9:])
-        print("Usuario Term    HOST            Fecha                   H.Con   T.Con")
-        for i in lista_filtrada:
-            if i[2] == "tty2":
-                print(i[0]+"\t"+i[1]+"\t\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6]+"\t"+i[7])
-            else:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6]+"\t"+i[7])
-        print(suma_valores)
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'H.Des':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
     elif opcion == "d" :
-        print("---------------------------")
-        print("Filtrar por hora de conexion:\n")
-        lista_filtrada=[]
-        for i in range(0,len(lista_normalizada)):
-            lista_filtrada.append(lista_normalizada[i].split(" ")[:10])
-        print("Usuario Term    HOST            Fecha                   H.Con   -       H.Des")
-        for i in lista_filtrada:
-            if i[2] == "tty2":
-                print(i[0]+"\t"+i[1]+"\t\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6]+"\t"+i[7]+"\t"+i[8])
+        for i in range(0,len(lista_filtrada[0])):
+            if lista_filtrada[0][i] == 'T.Con':
+                indice=i
+        for fila in lista_filtrada:
+            fila.pop(indice)
+        return lista_filtrada
+
+global lista_filtrada
+lista_filtrada=[]
+if args.filtro != None:
+    for i in args.filtro:
+        if i == "u":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("u",lista_filtrada) 
             else:
-                print(i[0]+"\t"+i[1]+"\t"+i[2]+"\t"+i[3]+"\t"+i[4]+"\t"+i[5]+"\t"+i[6]+"\t"+i[7]+"\t"+i[8])
-        print(suma_valores)
+                lista_filtrada=filtrar_last("u",lista_filtrada)
+        elif i == "t":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("t",lista_filtrada)
+            else:
+                lista_filtrada=filtrar_last("t",lista_filtrada)
+        elif i == "h":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("h",lista_filtrada)
+            else:
+                lista_filtrada=filtrar_last("h",lista_filtrada)
+        elif i == "f":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("f",lista_filtrada)
+            else:
+                lista_filtrada=filtrar_last("f",lista_filtrada)
+        elif i == "n":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("n",lista_filtrada)
+            else:
+                lista_filtrada=filtrar_last("n",lista_filtrada)
+        elif i == "c":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("c",lista_filtrada)
+            else:
+                lista_filtrada=filtrar_last("c",lista_filtrada)
+        elif i == "d":
+            if len(lista_filtrada) == 0:
+                lista = normalizar_lista()
+                for i in range(0,len(lista[0])):
+                    lista_filtrada.append(lista[0][i].split(" "))
+                lista_filtrada=filtrar_last("d",lista_filtrada)
+            else:
+                lista_filtrada=filtrar_last("d",lista_filtrada)
+
+#print("lista filtrada",lista_filtrada)
 
 
-#print("Usuario Term    HOST            Fecha   H.Con   H.Des   T.Con")
-
-## Creamos una función que recibe la opción del parametro -o el cual nos dira como organizar la lista normalizada.
-def ordenar_last(opcion,invertido):
-    lista_normalizada, cabezales, suma_valores = normalizar_lista()
+def ordenar_last(opcion,invertido,lista_normalizada):
+    cabezales=lista_normalizada[0]
+    indice=0
+    contador=0
     if opcion == "u" :
+        for i in lista_normalizada[0].split(" "):
+            contador=contador+1
+            if i == 'Usuario':
+                indice=contador-1
         print("---------------------------")
         print("Ordenar por usuario:\n")
-        lista_ordenada_usuario=sorted(lista_normalizada, key=lambda x: x.split(" ")[0], reverse=invertido)
-        print_list(cabezales,lista_ordenada_usuario,suma_valores)
+        lista_normalizada=sorted(lista_normalizada, key=lambda x: x.split(" ")[indice], reverse=invertido)
+        return lista_normalizada,cabezales
     elif opcion == "t" :
+        for i in lista_normalizada[0].split(" "):
+            contador=contador+1
+            if i == 'Term':
+                indice=contador-1
         print("---------------------------")
-        print("Ordenar por terminal:\n")
-        lista_ordenada_terminal=sorted(lista_normalizada, key=lambda x: x.split(" ")[1], reverse=invertido)
-        print_list(cabezales,lista_ordenada_terminal,suma_valores)
+        print("Ordenar por Terminal:\n")
+        lista_normalizada.pop(0)
+        lista_normalizada.pop(-1)
+        lista_normalizada=sorted(lista_normalizada, key=lambda x: x.split(" ")[indice], reverse=invertido)
+        return lista_normalizada,cabezales
     elif opcion == "h" :
+        for i in lista_normalizada[0].split(" "):
+            contador=contador+1
+            if i == 'Host':
+                indice=contador-1
         print("---------------------------")
         print("Ordenar por host:")
-        lista_ordenada_host=sorted(lista_normalizada, key=lambda x: x.split(" ")[2].replace(":",""), reverse=invertido)
-        print_list(cabezales,lista_ordenada_host,suma_valores)
+        lista_normalizada.pop(0)
+        lista_normalizada.pop(-1)
+        lista_normalizada=sorted(lista_normalizada, key=lambda x: x.split(" ")[indice], reverse=invertido)
+        return lista_normalizada,cabezales
     elif opcion == "d" :
+        for i in lista_normalizada[0].split(" "):
+            contador=contador+1
+            if i == 'T.Con':
+                indice=contador-1
         print("---------------------------")
         print("Ordenar por duracion de conexion:")
-        lista_ordenada_duracion=sorted(lista_normalizada, key=lambda x: x.split(" ")[9].replace("(","").replace(")","").replace(":",""), reverse=invertido)
-        print_list(cabezales,lista_ordenada_duracion,suma_valores)
+        lista_normalizada.pop(0)
+        lista_normalizada.pop(-1)
+        lista_normalizada=sorted(lista_normalizada, key=lambda x: x.split(" ")[indice].replace("(","").replace(")","").replace(":",""), reverse=invertido)
+        return lista_normalizada,cabezales
 
-## La opción inverso nos permite valdiar si el listado va a ser mostrado de forma inversa o no.
-## Al pasar la variable inverso que es de tipo boolean a la funcion ordenar_last luego podemos definir si el 
-## reverse=true o reverse=false con un reverse=inverso
-## Además nos permite validar si utilizamos la sumatoria de valores del -r con el atributo -i para poder invertir esta lista
-## Otra cosa que podemos hacer es que si solo se introduce -i, podemos invertir la lista del LAST recibido por la salida estandar
-## del script de bash.
+global lista_normalizada
+lista_normalizada=[]
+if len(lista_filtrada) == 0:
+    lista_filtrada=normalizar_lista()
+    lista_normalizada=lista_filtrada[0]
+else:
+    for i in lista_filtrada:
+        linea=""
+        for j in range(0,len(i)):
+            linea=linea+" "+i[j]
+        lista_normalizada.append(linea)
+
 inverso=False
 if args.inverso:
     inverso=True
@@ -243,44 +275,56 @@ else:
     inverso=False
 
 if args.orden == "u":
-    ordenar_last("u",inverso)
+    lista_normalizada=ordenar_last("u",inverso, lista_normalizada)
 elif args.orden == "t":
-    ordenar_last("t",inverso)
+    lista_normalizada=ordenar_last("t",inverso, lista_normalizada)
 elif args.orden == "h":
-    ordenar_last("h",inverso)
+    lista_normalizada=ordenar_last("h",inverso, lista_normalizada)
 elif args.orden == "d":
-    ordenar_last("d",inverso)
-elif args.filtro == "u":
-    filtrar_last("u",inverso)
-elif args.filtro == "t":
-    filtrar_last("t",inverso)
-elif args.filtro == "c":
-    filtrar_last("c",inverso)
-elif args.filtro == "f":
-    filtrar_last("f",inverso)
-elif args.filtro == "n":
-    filtrar_last("n",inverso)
-elif args.filtro == "d":
-    filtrar_last("d",inverso)
+    lista_normalizada=ordenar_last("d",inverso, lista_normalizada)
+
+
+## Creamos una función que recibe la opción del parametro -o el cual nos dira como organizar la lista normalizada.
+
+## La opción inverso nos permite valdiar si el listado va a ser mostrado de forma inversa o no.
+## Al pasar la variable inverso que es de tipo boolean a la funcion ordenar_last luego podemos definir si el 
+## reverse=true o reverse=false con un reverse=inverso
+## Además nos permite validar si utilizamos la sumatoria de valores del -r con el atributo -i para poder invertir esta lista
+## Otra cosa que podemos hacer es que si solo se introduce -i, podemos invertir la lista del LAST recibido por la salida estandar
+## del script de bash.
+
 ## Si la persona ingresa -r (recuento_horas) y -i (inverso), lo que se hace es guardar el resultado del bash en una lista
 ## y luego lo que hacemos es imprimir cada linea, de atrás para adelante, pero eliminando las ultimas 3 lineas 
 ## (espacio-sumatoria-espacio), y terminamos en el 1 para evitar los cabezales.
 ## Al finalizar, si la opción -i esta seleccionada, entonces hacemos un print de la lista[-2] que es la sumatoria de datos al final.
-elif inverso and args.recuento_horas:
-    lista,cabezales, suma_valores = normalizar_lista()
-    print(cabezales)
-    for i in range(len(lista)-3, 1, -1):
-        print(lista[i])
+if args.orden:
+    for j in range(0,len(lista_normalizada[0])):
+        print(lista_normalizada[0][j])
     print("\n")
-    print(suma_valores)
-elif inverso:
-    #lista, lista_normalizada, cabezales, suma_valores = normalizar_lista()
-    lista = normalizar_lista()
-    print(lista[0][0])
-    for i in range(len(lista[0])-3, 1, -1):
-        print(lista[0][i])
-## Si no se ingresa ningún parametro, imprimimos tal cual el resultado de la salida estandar del bash.
-else:
-    print(output[0].decode(), file = sys.stderr, end="")
+    exit(0)
+elif args.recuento_horas and inverso == False :
+    
+    lista=normalizar_lista()
+    for j in range(0,len(lista_normalizada)):
+        print(lista_normalizada[j])
     print("\n")
-exit()
+    print(lista[1])
+    exit(0)
+elif args.recuento_horas and inverso:
+    
+    lista=normalizar_lista()
+    if len(lista_normalizada) != 0:
+        for j in range(len(lista_normalizada)-1, 1, -1):
+            print(lista_normalizada[j])
+    else:
+        for j in range(len(lista_normalizada)-1, 1, -1):
+            print(lista_normalizada[j])
+    print("\n")
+    print(lista[1])
+    exit(0)
+else: 
+    lista=normalizar_lista()
+    for j in range(0,len(lista_normalizada)):
+        print(lista_normalizada[j])
+    print("\n")
+    exit(0)
