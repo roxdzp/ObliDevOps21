@@ -241,3 +241,8 @@ if args.recuento_horas:
     suma_valores=normalizar_lista()
     print("\n")
     print(suma_valores[1])
+    exit(0)
+else:
+    lista=output[0].decode().split("\n")
+    for linea in lista:
+        print(linea)
