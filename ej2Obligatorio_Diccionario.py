@@ -230,6 +230,7 @@ elif args.filtro != None:
     for i in cabezales:
         cabezal=cabezal+i
     print(cabezal)
+    #print("Usuario",separador_u,"Term",separador_t,"Host",separador_h,"Fecha",separador_f,"H.Con",separador_c,"H.Des",separador_n,"T.Con")
     for elemento in lista:
         if elemento["Host"]=="tty2":
             separador_h="\t\t"
@@ -246,3 +247,4 @@ else:
     lista=output[0].decode().split("\n")
     for linea in lista:
         print(linea)
+    exit(0)
