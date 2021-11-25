@@ -85,27 +85,10 @@ def normalizar_lista():
         return lista_normalizada, suma_valores
 
 def lista_diccionario(lista):
-    usuario=[]
-    term=[]
-    host=[]
-    fecha=[]
-    hcon=[]
-    separador=[]
-    hdes=[]
-    tcon=[]
-    for linea in lista:
-        usuario.append(linea.split(" ")[0])
-        term.append(linea.split(" ")[1])
-        host.append(linea.split(" ")[2])
-        fecha.append(linea.split(" ")[3]+" "+linea.split(" ")[4]+" "+linea.split(" ")[5])
-        hcon.append(linea.split(" ")[6])
-        separador.append(linea.split(" ")[7])
-        hdes.append(linea.split(" ")[8])
-        tcon.append(linea.split(" ")[9])
     diccionario={}
     lista_diccionario=[]
-    for i in range(0,len(usuario)):
-        diccionario={"Usuario":usuario[i],"Term":term[i],"Host":host[i],"Fecha":fecha[i],"H.Con":hcon[i],"-":separador[i],"H.Des":hdes[i],"T.Con":tcon[i]}
+    for linea in lista:
+        diccionario={"Usuario":linea.split(" ")[0],"Term":linea.split(" ")[1],"Host":linea.split(" ")[2],"Fecha":linea.split(" ")[3]+" "+linea.split(" ")[4]+" "+linea.split(" ")[5],"H.Con":linea.split(" ")[6],"-":linea.split(" ")[7],"H.Des":linea.split(" ")[8],"T.Con":linea.split(" ")[9]}
         lista_diccionario.append(diccionario)
     return lista_diccionario
 
@@ -131,6 +114,10 @@ elif args.orden == "d":
     lista.sort(key = lambda ele:ele["T.Con"], reverse=inverso)
 
 if args.filtro != None:
+    lista_filtros=['u', 'd', 'f', 'h', 't', 'n', 'c']
+    if(set(args.filtro) == set(lista_filtros)):
+        print("Al menos un campo debe estar visible, no pudiéndose ocultar todos")
+        exit(20)
     for i in args.filtro:
         if i == "u":
             for diccionario in lista:
@@ -153,6 +140,7 @@ if args.filtro != None:
         elif i == "d":
             for diccionario in lista:
                 diccionario.pop("T.Con")
+
 cabezales=lista[0].keys()
 linea=""
 for cabezal in cabezales:
