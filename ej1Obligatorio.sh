@@ -3,7 +3,8 @@
 ## Funcion que valida que un usuario exista
 function validaruser
 {
-    ## Utilizamos -q para que grep no escriba en pantalla y utilizamos la regex=^$1: que nos busca el parametro recibido de la funcion en el archivo
+    ## Utilizamos -q para que grep no escriba en pantalla y utilizamos la regex=^$1: que nos busca el parametro 
+    ## recibido de la funcion en el archivo
     ## solo si empieza con ese parametro $1 y esta acompañado de un : al final.
 	if ! grep -q "^$1:" /etc/passwd
 	then
@@ -11,8 +12,8 @@ function validaruser
 	fi
 }
 
-## Esta funcion nos permite pasando dos parametros (hh y mm) convertir esas cantidades a dias, horas y minutos o a horas y minutos si dias = 0 
-## (minutos < 1440)
+## Esta funcion nos permite pasando dos parametros (hh y mm) convertir esas cantidades a dias, horas y minutos
+## o a horas y minutos si los dias = 0 (minutos < 1440)
 ## Se debe de entender que 1440 minutos son 1 día y que 60 minutos son 1 hora.
 function converttime
 {

@@ -1,4 +1,3 @@
-
 #!/opt/rh/rh-python36/root/usr/bin/python3.6
 # -*- coding: utf-8 -*-
 from os import pread
@@ -63,6 +62,8 @@ if output[1].decode() != "":
     print(output[1].decode(), file=sys.stderr, end="")
     exit(0)
 
+lista=output[0].decode().split("\n")
+
 def normalizar_lista():
     lista=output[0].decode().split("\n")
     lista_normalizada=[]
@@ -101,18 +102,9 @@ def lista_diccionario(lista):
         separador.append(linea.split(" ")[7])
         hdes.append(linea.split(" ")[8])
         tcon.append(linea.split(" ")[9])
-    lista = []
-    lista.append(usuario)
-    lista.append(term)
-    lista.append(host)
-    lista.append(fecha)
-    lista.append(hcon)
-    lista.append(separador)
-    lista.append(hdes)
-    lista.append(tcon)
     diccionario={}
     lista_diccionario=[]
-    for i in range(0,len(lista[0])):
+    for i in range(0,len(usuario)):
         diccionario={"Usuario":usuario[i],"Term":term[i],"Host":host[i],"Fecha":fecha[i],"H.Con":hcon[i],"-":separador[i],"H.Des":hdes[i],"T.Con":tcon[i]}
         lista_diccionario.append(diccionario)
     return lista_diccionario
@@ -124,8 +116,6 @@ lista=lista_diccionario(lista[0])
 inverso=False
 if args.inverso:
     inverso=True
-else:
-    inverso=False
 
 if args.recuento_horas and args.orden == None and args.filtro == None and args.inverso == False:
     print(output[0].decode(), file=sys.stderr, end="")
@@ -140,103 +130,45 @@ elif args.orden == "h":
 elif args.orden == "d":
     lista.sort(key = lambda ele:ele["T.Con"], reverse=inverso)
 
-def filtrar_last(opcion, lista):
-    if opcion == "u" :
-        for i in range(0,len(lista)):
-            lista[i]["Usuario"]=""
-    elif opcion == "t" :
-        for i in range(0,len(lista)):
-            lista[i]["Term"]=""
-    elif opcion == "h" :
-        for i in range(0,len(lista)):
-            lista[i]["Host"]=""
-    elif opcion == "f" :
-        for i in range(0,len(lista)):
-            lista[i]["Fecha"]=""
-    elif opcion == "c" :
-        for i in range(0,len(lista)):
-            lista[i]["H.Con"]=""
-    elif opcion == "n" :
-        for i in range(0,len(lista)):
-            lista[i]["H.Des"]=""
-    elif opcion == "d" :
-        for i in range(0,len(lista)):
-            lista[i]["T.Con"]=""
-    return lista
-
-
-if args.orden and args.filtro == None:
-    print("Usuario  Term    HOST            Fecha           H.Con   H.Des   T.Con")
-    for elemento in lista:
-        if elemento["Host"]=="tty2":
-            separador="\t\t"
-        else:
-            separador="\t"
-        print(elemento["Usuario"],"\t",elemento["Term"],"\t",elemento["Host"],separador,elemento["Fecha"],"\t",elemento["H.Con"],"\t",elemento["H.Des"],"\t",elemento["T.Con"])       
-    #print("Usuario:",elemento["Usuario"],"Term:",elemento["Term"],"Host:",elemento["Host"],"Fecha:",elemento["Fecha"],"H.Con:",elemento["H.Con"],"H.Des:",elemento["H.Des"],"T.Con:",elemento["T.Con"])
-elif args.filtro != None:
-    cabezales=["Usuario","Term","HOST","Fecha","H.Con","H.Des","T.Con"]
-    separador_u="\t"
-    separador_t="\t"
-    separador_h="\t"
-    separador_f="\t"
-    separador_c="\t"
-    separador_n="\t"
-    separador_d="\t"
+if args.filtro != None:
     for i in args.filtro:
         if i == "u":
-            for j in range(0,len(cabezales)-1):
-                if cabezales[j] == "Usuario":
-                    cabezales.pop(j)
-            lista=filtrar_last("u",lista)
-            separador_u=""
+            for diccionario in lista:
+                diccionario.pop("Usuario")
         elif i == "t":
-            for j in range(0,len(cabezales)-1):
-                if cabezales[j] == "Term":
-                    cabezales.pop(j)
-            lista=filtrar_last("t",lista)
-            separador_t=""
+            for diccionario in lista:
+                diccionario.pop("Term")
         elif i == "h":
-            host=True
-            for j in range(0,len(cabezales)-1):
-                if cabezales[j] == "HOST":
-                    cabezales.pop(j)
-            lista=filtrar_last("h",lista)
-            separador_h=""
+            for diccionario in lista:
+                diccionario.pop("Host")
         elif i == "f":
-            for j in range(0,len(cabezales)-1):
-                if cabezales[j] == "Fecha":
-                    cabezales.pop(j)
-            lista=filtrar_last("f",lista)
-            separador_f=""
+            for diccionario in lista:
+                diccionario.pop("Fecha")
         elif i == "c":
-            for j in range(0,len(cabezales)):
-                if cabezales[j] == "H.Con":
-                    cabezales.pop(j)
-            lista=filtrar_last("c",lista)
-            separador_c=""
+            for diccionario in lista:
+                diccionario.pop("H.Con")
         elif i == "n":
-            for j in range(0,len(cabezales)):
-                if cabezales[j] == "H.Des":
-                    cabezales.pop(j)
-            lista=filtrar_last("n",lista)
-            separador_n=""
+            for diccionario in lista:
+                diccionario.pop("H.Des")
         elif i == "d":
-            for j in range(0,len(cabezales)):
-                if cabezales[j] == "T.Con":
-                    cabezales.pop(j)
-            lista=filtrar_last("d",lista)
-    cabezal=""
-    for i in cabezales:
-        cabezal=cabezal+i
-    print(cabezal)
-    #print("Usuario",separador_u,"Term",separador_t,"Host",separador_h,"Fecha",separador_f,"H.Con",separador_c,"H.Des",separador_n,"T.Con")
-    for elemento in lista:
-        if elemento["Host"]=="tty2":
-            separador_h="\t\t"
+            for diccionario in lista:
+                diccionario.pop("T.Con")
+cabezales=lista[0].keys()
+linea=""
+for cabezal in cabezales:
+    if cabezal == "Fecha" or cabezal == "Host":
+        linea=linea+cabezal+"\t"+"\t"
+    else:
+        linea=linea+cabezal+"\t"
+print(linea)
+for elemento in lista:
+    linea=""
+    for key in cabezales:
+        if key == "Host" and elemento[key] == "tty2":
+            linea=linea+elemento[key]+"\t"+"\t"
         else:
-            separador_h="\t"
-        print(elemento["Usuario"]+separador_u+elemento["Term"]+separador_t+elemento["Host"]+separador_h+elemento["Fecha"]+separador_f+elemento["H.Con"]+separador_c+elemento["H.Des"]+separador_n+elemento["T.Con"])       
+            linea=linea+elemento[key]+"\t"
+    print(linea)
 
 if args.recuento_horas:
     suma_valores=normalizar_lista()
@@ -244,7 +176,5 @@ if args.recuento_horas:
     print(suma_valores[1])
     exit(0)
 else:
-    lista=output[0].decode().split("\n")
-    for linea in lista:
-        print(linea)
+    suma_valores=normalizar_lista()
     exit(0)
