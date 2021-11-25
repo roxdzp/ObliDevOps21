@@ -60,10 +60,10 @@ function gethoursminutes
     ## En caso de recibir el parametro $1 lo que hacemos es filtrar el last por el usuario recibido en ese parametro
     ## utilizando el grep grep "^$1 " (¿Por que un espacio después del $1, porque usamos tr -s " " delimitando cada columna por un espacio).
         hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d":" -f1)
-        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | sed "s/)//g" | cut -d":" -f2)
+        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
     else
         hours=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d":" -f1)
-        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | sed "s/)//g" | cut -d":" -f2)
+        minutes=$(last | tr -s " " | grep "([0-9]*:[0-9]*)" | grep "^$1 " | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
     fi
     ## En el for que suma todas las horas/minutos recibidos, utilizamos el sed para eliminar todos los ceros a la izquierda del valor
     ## porque bash no interpeta el 01 como un numero, solo el 1.
@@ -135,7 +135,7 @@ while getopts ":ru:" opt;do
         ;;
     ## Este caso esta hecho porque si el modificador -u que tiene el (:) no recibe su atributo correspondiente, cae acá y controlamos esa excepción
     \: )
-        echo "No se ha especificado el usuario para el modificador .$OPTARG">&2
+        echo "No se ha especificado el usuario para el modificador -$OPTARG">&2
         exit 5
         ;;
     ## Getops guarda en la variable ? el valor del parametro (modificador -) que se introduzca que no pertenezca a las opciones, por ende 
