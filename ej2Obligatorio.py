@@ -61,22 +61,6 @@ if output[1].decode() != "":
     print(output[1].decode(), file=sys.stderr, end="")
     exit(0)
 
-## Si no se ingresa ningun parametro, se hace bypass de la salida standar de bash en nuestro script de python.
-## Pero se le agrega la cuenta de conexiones.
-if args.recuento_horas == False and args.orden == None and args.filtro == None and args.inverso == False:
-    print(output[0].decode(), file=sys.stderr, end="")
-    print("\nCantidad de conexiones listadas:",len(output[0].decode().split("\n"))-2)
-    exit(0)
-
-## Si el unico atributo que se ingresa es -r imprimimos en pantalla la salida standar del de bash.
-## Lo que sería basicamente bypass la salida standar del de bash por la de python.
-if args.recuento_horas and args.orden == None and args.filtro == None and args.inverso == False:
-    print(output[0].decode(), file=sys.stderr, end="")
-    if args.usuario:
-        print("\nCantidad de conexiones listadas para el usuario",args.usuario+":",len(output[0].decode().split("\n"))-3)
-    else:
-        print("\nCantidad de conexiones listadas:",len(output[0].decode().split("\n"))-2)
-    exit(0)
 
 ## Creamos una función que nos normaliza una lista creada a partir de la salida standar del script de bash.
 def normalizar_lista():
@@ -92,14 +76,14 @@ def normalizar_lista():
         ## Para normalizar pasamos por cada linea y decimos que si el usuario es reboot o si la linea es vacia
         ## entonces no se carga en la lista.
         for i in range(1,len(lista)-2):
-            if lista[i].split(" ")[0] != "" and lista[i].split(" ")[0] != "reboot" :
+            if lista[i].split(" ")[0] != "" :
                 lista_normalizada.append(re.sub(' +', ' ', lista[i]))
         return lista_normalizada, suma_valores
     ## Si no se ingresa -r, entonces la variable de la suma de valores la inicializamos en vacio.
     else:
         suma_valores=""
         for i in range(1,len(lista)):
-            if lista[i].split(" ")[0] != "" and lista[i].split(" ")[0] != "reboot" :
+            if lista[i].split(" ")[0] != "" :
                 lista_normalizada.append(re.sub(' +', ' ', lista[i]))
         return lista_normalizada, suma_valores
 
@@ -110,7 +94,10 @@ def lista_diccionario(lista):
     lista_diccionario=[]
     ## Por cada linea de nuestra lista creamos un diccionario con los datos correspondientes a cargar.
     for linea in lista:
-        diccionario={"Usuario":linea.split(" ")[0],"Term":linea.split(" ")[1],"Host":linea.split(" ")[2],"Fecha":linea.split(" ")[3]+" "+linea.split(" ")[4]+" "+linea.split(" ")[5],"H.Con":linea.split(" ")[6],"-":linea.split(" ")[7],"H.Des":linea.split(" ")[8],"T.Con":linea.split(" ")[9]}
+        if linea.split(" ")[1] == "system":
+            diccionario={"Usuario":linea.split(" ")[0],"Term":linea.split(" ")[1]+linea.split(" ")[2],"Host":linea.split(" ")[3],"Fecha":linea.split(" ")[4]+" "+linea.split(" ")[5]+" "+linea.split(" ")[6],"H.Con":linea.split(" ")[7],"-":linea.split(" ")[8],"H.Des":linea.split(" ")[9],"T.Con":linea.split(" ")[10]}
+        else:
+            diccionario={"Usuario":linea.split(" ")[0],"Term":linea.split(" ")[1],"Host":linea.split(" ")[2],"Fecha":linea.split(" ")[3]+" "+linea.split(" ")[4]+" "+linea.split(" ")[5],"H.Con":linea.split(" ")[6],"-":linea.split(" ")[7],"H.Des":linea.split(" ")[8],"T.Con":linea.split(" ")[9]}
         lista_diccionario.append(diccionario)
     return lista_diccionario
 
@@ -122,29 +109,22 @@ lista=normalizar_lista()
 ## Pasamos esa lista a la función lista_diccionario y nos devuelve la lista de diccionarios.
 lista=lista_diccionario(lista[0])
 
-## Si la persona ingresa -i entonces se carga una variable booleana llamada inverso, con True, en caso contrario
-## se queda en False. Esto lo utilizamos en la lambda para decidir si el reverse=True o reverse=False. 
-inverso=False
-if args.inverso:
-    inverso=True
-
 ## Si se ingresa el atributo -u con alguno de sus valores del choise, entonces ordena por ese valor nuestra lista.
 if args.orden == "u":
-    lista.sort(key = lambda ele:ele["Usuario"], reverse=inverso)
+    lista.sort(key = lambda ele:ele["Usuario"])
 elif args.orden == "t":
-    lista.sort(key = lambda ele:ele["Term"], reverse=inverso)
+    lista.sort(key = lambda ele:ele["Term"])
 elif args.orden == "h":
-    lista.sort(key = lambda ele:ele["Host"], reverse=inverso)
+    lista.sort(key = lambda ele:ele["Host"])
 elif args.orden == "d":
-    lista.sort(key = lambda ele:ele["T.Con"], reverse=inverso)
+    lista.sort(key = lambda ele:ele["T.Con"])
 
 ## Si no se ingresa el atributo -f con alguno de sus valores, entonces se sigue de largo
 ## En caso de que si se ingresen, primero validamos que no se hayan ingresado todos
 ## De ser así, devolvemos el mensaje de error "Al menos un campo debe estar visible, no pudiéndose ocultar todos"
 if args.filtro != None:
-    lista_filtros=['u', 'd', 'f', 'h', 't', 'n', 'c']
-    if(set(args.filtro) == set(lista_filtros)):
-        print("Al menos un campo debe estar visible, no pudiéndose ocultar todos")
+    if len(args.filtro) >= 7:
+        print("Al menos un campo debe estar visible, no pudiéndose ocultar todos.")
         exit(20)
     ## Dado que este atributo es de tipo nargs='+', entonces debemos buscar todas las columnas a filtrar (borrar)-
     for i in args.filtro:
@@ -178,17 +158,25 @@ linea=""
 ## Una vez que tenemos estas keys, las vamos a utilizar como cabezales, de forma que luego podamos imprimir los 
 ## necesarios para cada caso filtrado. Y luego unicamente vamos dandole "formato" a estos cabezales en pantalla
 for cabezal in cabezales:
-    if cabezal == "Fecha" or cabezal == "Host":
-        linea=linea+cabezal+"\t"+"\t"
+    if cabezal == "Term" or cabezal == "Host" or cabezal == "Fecha":
+        linea=linea+cabezal+"\t\t"
     else:
         linea=linea+cabezal+"\t"
 print(linea)
 ## Se imprime nuestra lista en pantalla con los valores ya filtrados y ordenados
-for elemento in lista:
+
+inverso=1
+if args.inverso:
+    inverso=-1
+for elemento in lista[::inverso]:
     linea=""
     for key in cabezales:
-        if key == "Host" and elemento[key] == "tty2":
-            linea=linea+elemento[key]+"\t"+"\t"
+        if key == "Host" and re.match(r"^tty", elemento[key]):
+            linea=linea+elemento[key]+"\t\t"
+        elif key == "Term" and (re.match(r"^tty", elemento[key]) or re.match(r"^pts", elemento[key])):
+            linea=linea+elemento[key]+"\t\t"
+        elif key == "Host" and re.match(r"^4", elemento[key]):
+            linea=linea+elemento[key]
         else:
             linea=linea+elemento[key]+"\t"
     print(linea)
@@ -199,8 +187,13 @@ if args.recuento_horas:
     print("\n")
     print(suma_valores[1])
     if args.usuario:
-        print("\nCantidad de conexiones listadas para el usuario",args.usuario+":",len(output[0].decode().split("\n"))-3)
+        print("\nCantidad de conexiones listadas para el usuario",args.usuario+":",len(output[0].decode().split("\n"))-4)
     else:
         print("\nCantidad de conexiones listadas:",len(output[0].decode().split("\n"))-2)
-    
+    exit(0)
+else:
+    if args.usuario:
+        print("\nCantidad de conexiones listadas para el usuario",args.usuario+":",len(output[0].decode().split("\n"))-4)
+    else:
+        print("\nCantidad de conexiones listadas:",len(output[0].decode().split("\n"))-2)
     exit(0)

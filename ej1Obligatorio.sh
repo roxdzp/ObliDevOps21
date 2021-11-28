@@ -51,7 +51,11 @@ function gethoursminutes
 {
     hourscount=0
     minutescount=0
-    if [ "$1" == "" ]
+    if [ $# -eq 1 ] && [ $1 == "reboot" ]
+    then
+        hours=$(last | tr -s " " | egrep "^reboot [^s]" | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d":" -f1)
+        minutes=$(last | tr -s " " | egrep "^reboot [^s]" | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
+    elif [ "$1" == "" ]
     then
     ## Para guardar las horas y minutos, filtramos el last por todo lo que tenga ([0-9]*:[0-9]) de forma que eliminamos cualquier linea del last
     ## que diga "still logged in" o que tenga más de 1 día de conexion.
@@ -85,7 +89,10 @@ function gethoursminutes
     else
         echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
         ## En este if validamos si debemos filtrar el last por el $1 (username) o no, antes de mostrar los valores y la suma de las horas/minutos
-        if [ "$1" == "" ]
+        if [ $# -eq 1 ] && [ $1 == "reboot" ]
+        then
+            last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
+        elif [ "$1" == "" ]
         then
             last | grep "([0-9]*:[0-9]*)"
         else
@@ -99,9 +106,15 @@ function gethoursminutes
 ## "still logged in" o que tenga más de 1 día de conexion.
 if [ $# -eq 0 ]
 then
-    echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
-    last | grep "([0-9]*:[0-9]*)"
-    exit 0
+    if [ $1 == "reboot" ]
+    then
+        echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+        last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
+    else
+        echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+        last | grep "([0-9]*:[0-9]*)"
+        exit 0
+    fi
 fi
 ## Con getops validamos lo introducido por el usuario, solicitando -r (puede ir solo), -u (acompañado de un valor, para eso el :)
 ## Luego lo que hacemos es guardar los valores que coincidan con lo ingresado en la variable opt
@@ -133,12 +146,17 @@ while getopts ":ru:" opt;do
                 gethoursminutes $OPTARG
                 exit 0
             else
-                echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
-                last | grep "([0-9]*:[0-9]*)" | grep "^$OPTARG "
-                exit 0
+                if [ $OPTARG == "reboot" ]
+                then
+                    echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+                    last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
+                else
+                    echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+                    last | grep "([0-9]*:[0-9]*)" | grep "^$OPTARG "
+                fi
             fi
         fi
-        exit 0 
+        exit 0
         ;;
     ## Este caso esta hecho porque si el modificador -u que tiene el (:) no recibe su atributo correspondiente, cae acá y controlamos esa excepción
     \: )
