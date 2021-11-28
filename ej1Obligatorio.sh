@@ -127,9 +127,18 @@ while getopts ":ru:" opt;do
         then
             echo "No existe el usuario $OPTARG en el sistema.">&2
             exit 2
+        
         else
-            gethoursminutes $OPTARG
-            exit 0
+            regex="^[^-]"
+            if [ $# -eq 2 ] && [ $1 == "-u" ] && [[ $2 =~ $regex ]]
+            then
+                echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+                last | grep "([0-9]*:[0-9]*)" | grep "^$2 "
+                exit 0
+            else
+                gethoursminutes $OPTARG
+                exit 0
+            fi
         fi
         exit 0 
         ;;
