@@ -2,21 +2,28 @@
 Obligatorio de Programación para DevOps
 
 ## Ejercicio 1 - Bash
- - ej1_historial_usuarios_conectados.sh
-    Este archivo es una versión que se corrigió en función de los comentarios del profe.
- - ej1_nuevo.sh
-    Es el ejercicio 1 resuelto de la manera que sugirió el profe (simplificado)
+ - ej1Obligatorio.sh
+    Versión final
 
 ## Ejercicio 2 - Python
- - ej2_largo_caminos_expandido.py
-    Ejercicio de
+ - ej2Obligatorio.py
+    Versión final
 
 
-Token de Maik:
-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
+
+
+
+ssh-keygen -t rsa
+cat /root/.ssh/id_rsa.pub
 
 git init
-git pull
+
+git clone git@github.com:roxdzp/ObliDevOps21.git
 git add .
+
+cd .. ObliDevOps21
+git checkout main
+
+git pull
 git commit -m "Comentario sobre el cambio"
 git push
