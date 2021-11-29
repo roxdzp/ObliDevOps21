@@ -106,15 +106,9 @@ function gethoursminutes
 ## "still logged in" o que tenga más de 1 día de conexion.
 if [ $# -eq 0 ]
 then
-    if [ $1 == "reboot" ]
-    then
-        echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
-        last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
-    else
-        echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
-        last | grep "([0-9]*:[0-9]*)"
-        exit 0
-    fi
+    echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+    last | grep "([0-9]*:[0-9]*)"
+    exit 0
 fi
 ## Con getops validamos lo introducido por el usuario, solicitando -r (puede ir solo), -u (acompañado de un valor, para eso el :)
 ## Luego lo que hacemos es guardar los valores que coincidan con lo ingresado en la variable opt
@@ -145,14 +139,20 @@ while getopts ":ru:" opt;do
             then
                 gethoursminutes $OPTARG
                 exit 0
+            elif [ $# -eq 3 ] && [ $1 == "-u" ]
+            then
+                echo "Modificador u orden incorrecto. Solo se aceptan -r -u usuario, y en ese orden en caso de estar ambos presentes.">&2
+                exit 4
             else
                 if [ $OPTARG == "reboot" ]
                 then
                     echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
                     last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
+                    exit 0
                 else
                     echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
                     last | grep "([0-9]*:[0-9]*)" | grep "^$OPTARG "
+                    exit 0
                 fi
             fi
         fi
