@@ -67,10 +67,16 @@ function converttime # funcion para convertir las horas y minutos desde la salid
 ## Un ejemplo sería usar gethoursminutes $username
 function gethoursminutes
 {
-    # Definimos las variables de horas y de minutos en 0
+    ## Definimos las variables de horas y de minutos en 0
     hourscount=0
     minutescount=0
-    if [ "$1" == "" ] # Si no ingresamos un usuario para filtrar, o sea, si $1 es nada.
+    if [ $# -eq 1 ] && [ $1 == "reboot" ] ## Si se ingresa un solo parametro a la función gethoursminutes y ese parametro es reboot
+                                          ## entonces lo que hacemos es filtrar en el grep para que me traiga las conexiones del usuario 
+                                          ## (de existir) reboot y no las del system boot
+    then
+        hours=$(last | tr -s " " | egrep "^reboot [^s]" | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d":" -f1)
+        minutes=$(last | tr -s " " | egrep "^reboot [^s]" | grep "([0-9]*:[0-9]*)" | cut -d"(" -f2 | cut -d")" -f1 | cut -d":" -f2)
+    elif [ "$1" == "" ]# Si no ingresamos un usuario para filtrar, o sea, si $1 es nada.
     then
     ## Para guardar las horas y minutos, filtramos el last por todo lo que tenga ([0-9]*:[0-9]) de forma que eliminamos cualquier linea del last
     ## que diga "still logged in" (usuarios que sigan logueados) o que tenga más de 1 día de conexion (que aparecen como (1+23:44) por ejemplo).
@@ -110,12 +116,17 @@ function gethoursminutes
         exit 0  # Pero como en realidad no es un error, sino un pedido de la letra, salimos con 0.
     else
         echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
-        ## En este if validamos si debemos filtrar el last por el $1 (username) o no, antes de mostrar los valores y la suma de las horas/minutos.
-        if [ "$1" == "" ]   # Si no se ingresó usuario (parámetro)
+        ## En este if validamos si debemos filtrar el last por el $1 (username) o no, antes de mostrar los valores y la suma de las horas/minutos
+        if [ $# -eq 1 ] && [ $1 == "reboot" ]
         then
-            last | grep "([0-9]*:[0-9]*)"   # Muestra solo las filas que tienen (HH:mm) y no las que tienen otras cosas como (1+HH:mm) o (15+HH:mm)
+            last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
+        elif [ "$1" == "" ] # Si no se ingresó usuario (parámetro)
+        then
+            last | grep "([0-9]*:[0-9]*)" # Muestra solo las filas que tienen (HH:mm) y no las que tienen otras cosas como (1+HH:mm) o (15+HH:mm)
+
         else
             last | grep "([0-9]*:[0-9]*)" | grep "^$1 " # Sino, muestra solo las filas que tienen al usuario y tienen tiempo en formato (HH:mm)
+
         fi
         echo ""
         converttime $minutescount $hourscount
@@ -167,16 +178,14 @@ while getopts ":ru:" opt;do # Mientras getops valide que hay una -r y/o -u usern
             echo "No existe el usuario $OPTARG en el sistema.">&2
             exit 2
         else
-            regex="^[^-]"   # Para que en la comprobación que viene luego vea que el segundo parámetro es un usuario y no un modificador.
-            if [ $# -eq 2 ] && [ $1 == "-u" ] && [[ $2 =~ $regex ]] # Agregamos esta linea para comprobar si se ingresó unicamente -u seguido del usuario (sin -r).
-                                                                    # Se asegura que el primer parámetro sea la -u y el segundo sea algo que no empiece con un -.
+            if [ $OPTARG == "reboot" ] # Agregamos esta linea para comprobar si se ingresó unicamente -u seguido del usuario (sin -r).
+                                       # Se asegura que el primer parámetro sea la -u y el segundo sea algo que no empiece con un -
             then
                 echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
-                last | grep "([0-9]*:[0-9]*)" | grep "^$2 "
-                exit 0
+                last | grep "([0-9]*:[0-9]*)" | egrep "^reboot   [^s]"
             else
-                gethoursminutes $OPTARG
-                exit 0
+                echo -e "Usuario  Term         HOST             Fecha      H.Con   H.Des  T.Con"
+                last | grep "([0-9]*:[0-9]*)" | grep "^$OPTARG "
             fi
         fi
         exit 0 
