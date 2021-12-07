@@ -71,10 +71,10 @@ parser = argparse.ArgumentParser()
 
 
 ## El argumento -r viene del script de bash, lo utilizamos para validar si se devuelven o no la cantidad de minutos/horas/días. 
-## Guarda en si, el valor true si se utiliza. Y en caso contrario false (esta o no esta) (?).
+##? Guarda en si, el valor true si se utiliza. Y en caso contrario false (esta o no esta) (?).
 #! El nombre Largo ademas de que se estila poner, me sirve para evitar confuciones en el script, imaginemos querer borrar algo que solo sea -r.
 parser.add_argument("-r", "--recuento_horas", help="Devuelve un contador de las horas/minutos/dias sumadas.", action="store_true")
-#! ¿Por que aca no le ponemos que sea de clase str como en las demas lineas?, para que le agregas la accion? y por que no se le pone un resultado por defecto como en las demas lineas?.
+#? ¿Por qué acá no le ponemos que sea de clase str como en las demás líneas? Para que le agregas la accion? Y por qué no se le pone un resultado por defecto como en las demás líneas?
 #! Respuesta: No le ponemos str porque en -r no voy a guardar un string, solo me voy a guardar un booleano que va a ser un verdadero en caso de que el arguemtno sea r.
 #! No le pongo valor por default por que no lo necesito.
 
@@ -140,65 +140,51 @@ if args.usuario:
 process = Popen(ej1_last, stdout = PIPE, stderr = PIPE)
 #! aca estamos creando el ejecutador, esto lo hace popen, que es al que le paso la lista de lo que tiene que ejecutar, 
 ''' NOTE COMENTARIOS Y EJEMPLOS SOBRE EL USO DE Popen.
-    Popen permite obtener la salida estándar, salida estándar de errores y
-    el código de salida de un comando ejecutado.
+    Popen permite obtener la salida estándar, salida estándar de errores y el código de salida de un comando ejecutado.
     Sintaxis general de Popen:
-    Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    El parámetro shell=True hace que el comando sea interpretado por una
-    shell. De esta forma, en vez de pasarse el comando y los argumentos
-    en una lista a Popen, directamente se le pasa en un mismo string el
-    comando y sus argumentos todos juntos (como si fueran escritos por un
-    usuario en la línea de comandos en una terminal), para ser
-    interpretados por la shell y que se produzca la ejecución. Esta
-    solución se considera menos elegante y menos segura y no se usa aquí
-    para el segundo ejercicio del obligatorio.
-    El siguiente ejemplo muestra cómo se ejecuta ls -l .*. Si no se usa
-    el parámetro de Popen shell=True, al ponerse "ls -l .*" como comando,
-    causa error, pues no hay una shell que expanda el ".*", siendo además
-    todo el string "ls -l .*" interpretado como el comando "ls -l .*" y no
-    como el comando "ls" con el modificador "-l" y como argumentos los
-    archivos ocultos del directorio corriente de trabajo.
-        proceso_ls = Popen("ls -l .*", shell=True, stdout = PIPE)
-        print("Salida del ls -l .* con uso de shell=true:")
-        print(proceso_ls.communicate()[0])
+#+        Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    El parámetro shell=True hace que el comando sea interpretado por una shell. De esta forma, en vez de pasarse el
+    comando y los argumentos en una lista a Popen, directamente se le pasa en un mismo string el comando y sus
+    argumentos todos juntos (como si fueran escritos por un usuario en la línea de comandos en una terminal), para ser
+    interpretados por la shell y que se produzca la ejecución. Esta solución se considera menos elegante y
+    menos segura y no se usa aquí para el segundo ejercicio del obligatorio.
+    El siguiente ejemplo muestra cómo se ejecuta ls -l .*. Si no se usa el parámetro de Popen shell=True, al
+    ponerse "ls -l .*" como comando, causa error, pues no hay una shell que expanda el ".*", siendo además
+    todo el string "ls -l .*" interpretado como el comando "ls -l .*" y no como el comando "ls" con el
+    modificador "-l" y como argumentos los archivos ocultos del directorio corriente de trabajo.
+#+        proceso_ls = Popen("ls -l .*", shell=True, stdout = PIPE)
+#+        print("Salida del ls -l .* con uso de shell=true:")
+#+        print(proceso_ls.communicate()[0])
     El siguiente ejemplo muestra otra posibilidad, que es usar:
-    proceso_ls2 = Popen(["ls", "-la"],stdout = PIPE), pero no hace
-    exactamente lo mismo que el ejemplo anterior. En este caso, no es
-    posible utilizar ".*", ya que no se puede expandir al no haber una
-    shell interpretando el comando (por no estar el parámetro shell=True en
-    Popen). Si se pusiera proceso_ls2 = Popen(["ls", ".*"],stdout = PIPE),
-    entonces ".*" no sería expandido (por no haber quien haga la
-    expansión de nombres) y será tomado como un literal (como el archivo de
+#+        proceso_ls2 = Popen(["ls", "-la"],stdout = PIPE)
+    pero no hace exactamente lo mismo que el ejemplo anterior. En este caso, no es posible utilizar ".*",
+    ya que no se puede expandir al no haber una shell interpretando el comando (por no estar el parámetro
+    shell=True en Popen). Si se pusiera
+#+        proceso_ls2 = Popen(["ls", ".*"],stdout = PIPE)
+    entonces ".*" no sería expandido (por no haber quien haga la expansión de nombres) y será tomado como un literal (como el archivo de
     nombre ".*"), causando error.
-        proceso_ls2 = Popen(["ls", "-la"], stdout = PIPE)
-        print("salida del ls -la con lista de parámetros:")
-        print(proceso_ls2.communicate()[0])
+#+        proceso_ls2 = Popen(["ls", "-la"], stdout = PIPE)
+#+        print("salida del ls -la con lista de parámetros:")
+#+        print(proceso_ls2.communicate()[0])
 '''
-#! El objeto process permite ejecutar el comando solicitado y acceder a la
-#! información que produce. Para obtener el código de retorno, la salida
-#! estándar y la salida estándar de errores del script del ejercicio 1, es
-#! necesario ejecutar el método communicate de este objeto (este método
+#! El objeto process permite ejecutar el comando solicitado y acceder a la información que produce. Para obtener el código de retorno, la salida
+#! estándar y la salida estándar de errores del script del ejercicio 1, es necesario ejecutar el método communicate de este objeto (este método
 #! causa la ejecución del ejercicio 1).
-#! El método communicate retorna una tupla con la salida y la entrada
-#! estándar (stdoutdata, stderrdata). La variable output será una tupla
-#! con la salida estándar como primer elemento y la salida estándar de
-#! errores como segundo elemento.
+#! El método communicate retorna una tupla con la salida y la entrada estándar (stdoutdata, stderrdata). La variable output será una tupla
+#! con la salida estándar como primer elemento y la salida estándar de errores como segundo elemento.
 
 #! En ouput nos guardamos lo que nos devuelve nuestro script de bash, de forma que podemos imprimirlo en pantalla nuevamente.
 output = process.communicate()
-#! Aca recien nos estamos comunicando como quien dice con el script de bash y en utput se carga la salida estandar y la salida estandar de errores.
+#! Aca recien nos estamos comunicando, como quien dice, con el script de bash y en output se carga la salida estandar y la salida estandar de errores.
 #! Aca se va a cargar una tupla con el codigo de salida 0 y la salida estandar y el codigo 1 y la salida estandar de errores.
 
-#! Con process.returncode se obtiene el código de retorno (exit code) del
-#! script del ejercicio 1.
-#! Si el código de retorno del script del ejercicio 1 es distinto de 0,
-#! entonces hay un error y por tanto hay que desplegar por la salida
-#! estándar de errores el mismo mensaje de error que ha devuelto ese
-#! script, además salir con su mismo código de error.
+#! Con process.returncode se obtiene el código de retorno (exit code) del script del ejercicio 1.
+#! Si el código de retorno del script del ejercicio 1 es distinto de 0, entonces hay un error y por tanto hay que desplegar por la salida
+#! estándar de errores el mismo mensaje de error que ha devuelto ese script, además salir con su mismo código de error.
 
-## Si nos devuelve error, osea que el codigo retornado por el script en bash es mayor a 0, entonces imprimimos
+## Si nos devuelve error, o sea que el codigo retornado por el script en bash es mayor a 0, entonces imprimimos
 ## en pantalla ese mensaje de error que viene de bash y nos salimos con exit y el mismo codigo del de bash.
-#! La función .decode() nos permite hacer que python utilize el mismo lenguaje de lectura que el de bash, que en este caso es UTF-8
+#! La función .decode() nos permite hacer que python utilice el mismo lenguaje de lectura que el de bash, que en este caso es UTF-8
 #! esto nos permite que se comporte de misma manera los saltos de lineas, espacios y tabulaciones y no veamos distorcionada la salida
 #! del script de bash en nuestra terminal de python.
 if process.returncode > 0:
@@ -212,9 +198,8 @@ if process.returncode > 0:
     #! file = sys.stderr, es el equivalente a poner >&2 en bash.
     #! end="" es para que no me agregue un enter mas, la propia salida de la salida estandar de errores ya tiene un enter, si le sumo el enter del print
     #! me van a quedar dos, por eso es que le digo que al final no le meta nada.
-    #! Se finaliza la ejecución del programa con el mismo código de error
-    #! que el script del ejercicio 1.
-    exit(process.returncode)
+     
+    exit(process.returncode)    #! Se finaliza la ejecución del programa con el mismo código de error que el script del ejercicio 1.
 
 #! Se verifica si se ha recibido información por la entrada estándar de
 #! errores.
@@ -229,7 +214,7 @@ if process.returncode > 0:
 if output[1].decode() != "":
     print(output[1].decode(), file=sys.stderr, end="")
     exit(0)
-#esa linea es la exepcion, es la parte que la letra pide que saquemos un caso de exito por la salida estandar de errores.
+#! esa linea es la exepcion, es la parte que la letra pide que saquemos un caso de exito por la salida estandar de errores.
 #! la diferencia entre el primer if con el segundo, es que en el primero atajo un error y en el segundo un warning.
 
 #!SECTION
@@ -239,11 +224,12 @@ if output[1].decode() != "":
 #!                               SECTION 2: FUNCIONES                               #
 #! -------------------------------------------------------------------------------- #
 
-
-#! LA FUNCION LISTANORMALIZADA (normalizar_lista) NO ES NECESARIA AHORA QUE DESDE EL DE BASH SE FILTRAN LAS LINEAS DEL USUARIO REBOOT SYSTEM BOOT.
-#! POR LO QUE TODA ESTA FUNCION SE PUEDE ELIMINAR; DADO QUE LO UNICO QUE HACE ES NORMALIZAR UNA LISTA YA NORMALIZADA.
-#! PERO COMO NO NOS DIMOS CUENTA, QUEDO CREADA Y POR ENDE HAY QUE ENTENDER COMO FUNCIONA.
-#! SI NOSOTROS LA BORRAMOS NO AFECTA EN NADA AL PROGRAMA.
+''' NOTE Función sin usar #+ normalizar_lista
+    La función LISTANORMALIZADA (normalizar_lista) NO ES NECESARIA desde que en el script de Bash #! YA SE FILTRAN LAS LINEAS DEL USUARIO REBOOT SYSTEM BOOT.
+    Dado que lo único que hace es normalizar una lista ya normalizada, #! TODA ESTA FUNCION SE PUEDE ELIMINAR
+    Pero como no nos dimos cuenta, quedó creada y por ende #! HAY QUE ENTENDER COMO FUNCIONA.
+    Si se elimina #! NO AFECTA EN NADA AL PROGRAMA.
+'''
 
 ## Creamos una función que nos normaliza una lista creada a partir de la salida standar del script de bash.
 def normalizar_lista():
@@ -302,6 +288,7 @@ def normalizar_lista():
                                             #! Lo que para nosotros sería una "fila valida", por lo que podemos guardarla en nuestra lista_normalizada.
     return lista_normalizada, suma_valores
 
+
 #!    ############
 #!    ############
 
@@ -323,7 +310,7 @@ def lista_diccionario(lista):
                                               #! una lista de diccionarios.
     return lista_diccionario
 
-#!SECTION
+#!SECTION 2: FUNCIONES
 
 
 #! ---------------------------------------------------------------------------- #
